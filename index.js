@@ -86,10 +86,10 @@ app.post('/forgot-password', (req, res) => {
     const user = users.find(user => user.name === name);
     if (!user) {
         return res.status(400).json({ message: 'Usuário não encontrado' });
+    } else {
+        // NÃO RETORNAR SENHA EM TEXTO SIMPLES, ISSO É APENAS PARA TESTES
+        res.status(200).json({ message: 'Senha não retornada por segurança' });
     }
-
-    // NÃO RETORNAR SENHA EM TEXTO SIMPLES, ISSO É APENAS PARA TESTES
-    res.status(200).json({ message: 'Senha não retornada por segurança' });
 });
 
 // Rota para verificar se o servidor está funcionando
