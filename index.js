@@ -7,7 +7,7 @@ const app = express();
 const PORT = 5000;
 
 // Usuários em memória (para testes)
-let users = [];
+let users = [{ name:'TesteUser', password:'Senha123' }];
 
 // Criando um usuário para testes
 const name = 'Teste User';
