@@ -9,6 +9,22 @@ const PORT = 5000;
 // Usuários em memória (para testes)
 let users = [];
 
+async function createTestUser() {
+    const name = 'Teste User';
+    const password = 'Senha123';
+  
+    // Criptografa a senha
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
+    // Adiciona o usuário ao array
+    users.push({ name, password: hashedPassword });
+  
+    console.log('Usuário de teste criado:', { name, password: hashedPassword });
+  }
+  
+  // Cria o usuário ao iniciar o servidor
+  createTestUser();
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
