@@ -7,19 +7,7 @@ const app = express();
 const PORT = 5000;
 
 // Usuários em memória (para testes)
-let users = [{ name:'TesteUser', password:'Senha123' }];
-
-// Criando um usuário para testes
-const name = 'Teste User';
-const password = 'Senha123';
-
-// Criptografa a senha
-const hashedPassword = await bcrypt.hash(password, 10);
-
-// Adiciona o usuário ao array
-users.push({ name, password: hashedPassword });
-
-console.log('Usuário de teste criado:', { name, password: hashedPassword });
+let users = [];
 
 async function createTestUser() {
     const name = 'Teste User';
