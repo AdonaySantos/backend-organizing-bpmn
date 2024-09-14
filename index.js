@@ -2,9 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken'); // Import JWT
 
 const app = express();
 const PORT = 5000;
+const SECRET_KEY = 'seu_segredo_super_seguro'; // Alterar para um segredo mais seguro em produção
 
 // Usuários em memória (para testes)
 let users = [];
@@ -20,20 +22,20 @@ async function createTestUser() {
     users.push({ name, password: hashedPassword });
   
     console.log('Usuário de teste criado:', { name, password: hashedPassword });
-  }
-  
-  // Cria o usuário ao iniciar o servidor
-  createTestUser();
+}
+
+// Cria o usuário ao iniciar o servidor
+createTestUser();
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// Rota para registro de usuários
+// Rota para registro de usuários (sem alterações)
 app.post('/register', async (req, res) => {
     const { name, password } = req.body;
 
-    // Validações para o nome
+    // Validações para o nome e a senha...
     if (!name || name.length < 3) {
         return res.status(400).json({ message: 'O nome deve ter pelo menos 3 caracteres.' });
     }
@@ -42,7 +44,6 @@ app.post('/register', async (req, res) => {
         return res.status(400).json({ message: 'O nome deve conter apenas letras e espaços.' });
     }
 
-    // Validações para a senha
     if (password.length < 6) {
         return res.status(400).json({ message: 'A senha deve ter pelo menos 6 caracteres.' });
     }
@@ -55,13 +56,11 @@ app.post('/register', async (req, res) => {
         return res.status(400).json({ message: 'A senha deve conter pelo menos um número.' });
     }
 
-    // Verifica se o usuário já existe
     const existingUser = users.find(user => user.name === name);
     if (existingUser) {
         return res.status(400).json({ message: 'Usuário já existe' });
     }
 
-    // Criptografa a senha e cria um novo usuário
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         users.push({ name, password: hashedPassword });
@@ -71,21 +70,21 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// Rota para login
+// Rota para login com geração de token JWT
 app.post('/login', async (req, res) => {
     const { name, password } = req.body;
 
-    // Verifica se o usuário existe
     const user = users.find(user => user.name === name);
     if (!user) {
         return res.status(400).json({ message: 'Credenciais inválidas' });
     }
 
-    // Verifica a senha
     try {
         const isMatch = await bcrypt.compare(password, user.password);
         if (isMatch) {
-            res.status(200).json({ message: 'Login bem-sucedido' });
+            // Gera o token JWT com o nome do usuário
+            const token = jwt.sign({ name: user.name }, SECRET_KEY, { expiresIn: '1h' });
+            res.status(200).json({ message: 'Login bem-sucedido', token }); // Envia o token para o frontend
         } else {
             res.status(400).json({ message: 'Credenciais inválidas' });
         }
@@ -94,8 +93,24 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Rota para recuperação de senha
-app.post('/forgot-password', (req, res) => {
+// Middleware para verificar o token JWT
+function authenticateToken(req, res, next) {
+    const token = req.headers['authorization']; // O token é enviado no cabeçalho Authorization
+    if (!token) {
+        return res.status(401).json({ message: 'Acesso negado. Token não fornecido.' });
+    }
+
+    jwt.verify(token, SECRET_KEY, (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: 'Token inválido ou expirado.' });
+        }
+        req.user = user; // Anexa o usuário à requisição
+        next();
+    });
+}
+
+// Rota protegida (exemplo: recuperação de senha)
+app.post('/forgot-password', authenticateToken, (req, res) => {
     const { name } = req.body;
 
     // Verifica se o usuário existe
@@ -103,8 +118,7 @@ app.post('/forgot-password', (req, res) => {
     if (!user) {
         return res.status(400).json({ message: 'Usuário não encontrado' });
     } else {
-        // NÃO RETORNAR SENHA EM TEXTO SIMPLES, ISSO É APENAS PARA TESTES
-        res.status(200).json({ message: 'Senha não retornada por segurança' });
+        res.status(200).json({ message: 'Recuperação de senha iniciada' });
     }
 });
 
