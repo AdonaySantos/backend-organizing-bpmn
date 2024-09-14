@@ -2,40 +2,38 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken'); // Import JWT
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = 5000;
-const SECRET_KEY = 'seu_segredo_super_seguro'; // Alterar para um segredo mais seguro em produção
+const SECRET_KEY = crypto.randomBytes(64).toString('hex');
 
 // Usuários em memória (para testes)
 let users = [];
 
+// Cria um usuário de teste ao iniciar o servidor
 async function createTestUser() {
     const name = 'Teste User';
     const password = 'Senha123';
   
-    // Criptografa a senha
     const hashedPassword = await bcrypt.hash(password, 10);
   
-    // Adiciona o usuário ao array
     users.push({ name, password: hashedPassword });
   
     console.log('Usuário de teste criado:', { name, password: hashedPassword });
 }
 
-// Cria o usuário ao iniciar o servidor
 createTestUser();
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// Rota para registro de usuários (sem alterações)
+// Rota para registro de usuários
 app.post('/register', async (req, res) => {
     const { name, password } = req.body;
 
-    // Validações para o nome e a senha...
+    // Validações para o nome e a senha
     if (!name || name.length < 3) {
         return res.status(400).json({ message: 'O nome deve ter pelo menos 3 caracteres.' });
     }
@@ -82,9 +80,8 @@ app.post('/login', async (req, res) => {
     try {
         const isMatch = await bcrypt.compare(password, user.password);
         if (isMatch) {
-            // Gera o token JWT com o nome do usuário
             const token = jwt.sign({ name: user.name }, SECRET_KEY, { expiresIn: '1h' });
-            res.status(200).json({ message: 'Login bem-sucedido', token }); // Envia o token para o frontend
+            res.status(200).json({ message: 'Login bem-sucedido', token });
         } else {
             res.status(400).json({ message: 'Credenciais inválidas' });
         }
@@ -95,7 +92,8 @@ app.post('/login', async (req, res) => {
 
 // Middleware para verificar o token JWT
 function authenticateToken(req, res, next) {
-    const token = req.headers['authorization']; // O token é enviado no cabeçalho Authorization
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
     if (!token) {
         return res.status(401).json({ message: 'Acesso negado. Token não fornecido.' });
     }
@@ -104,7 +102,7 @@ function authenticateToken(req, res, next) {
         if (err) {
             return res.status(403).json({ message: 'Token inválido ou expirado.' });
         }
-        req.user = user; // Anexa o usuário à requisição
+        req.user = user;
         next();
     });
 }
@@ -113,7 +111,6 @@ function authenticateToken(req, res, next) {
 app.post('/forgot-password', authenticateToken, (req, res) => {
     const { name } = req.body;
 
-    // Verifica se o usuário existe
     const user = users.find(user => user.name === name);
     if (!user) {
         return res.status(400).json({ message: 'Usuário não encontrado' });
