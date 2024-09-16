@@ -18,11 +18,6 @@ const processos = [
     { id: 4, nome: 'Processo D', numero: '004', descricao: 'Descrição do Processo D', data: '2023-09-25' }
 ];
 
-
-
-const processjson = processos
-
-
 const cadeiasDeProcessos = [
     { id: 1, nome: 'Cadeia X', processos: ['Processo A', 'Processo B'] },
     { id: 2, nome: 'Cadeia Y', processos: ['Processo B', 'Processo C'] }
@@ -37,52 +32,24 @@ function paginar(array, pagina = 1, limite = 5) {
     return array.slice((pagina - 1) * limite, pagina * limite);
 }
 
-// Função de busca de processos
-function buscarProcessos(termo, ordenarPor = 'nome', pagina = 1, limite = 5) {
-    let resultados = processos;
 
-    if (termo) {
-        resultados = resultados.filter(processo =>
-            processo.nome.toLowerCase().includes(termo.toLowerCase()) ||
-            processo.numero.includes(termo)
-        );
+// Rota para buscar processos por nome
+app.get('/buscar-processos/:nome', async (req, res) => {
+    const nome = req.params.nome.toLowerCase()
+
+    const resultados = processos.filter(processo =>
+        processo.nome.toLowerCase().includes(nome)
+    );
+
+    if(resultados.length === 0) {
+        return res.status(404).send('Item não encontrado.')
     }
 
-    if (ordenarPor === 'nome') {
-        resultados.sort((a, b) => a.nome.localeCompare(b.nome));
-    } else if (ordenarPor === 'numero') {
-        resultados.sort((a, b) => a.numero.localeCompare(b.numero));
-    } else if (ordenarPor === 'data') {
-        resultados.sort((a, b) => new Date(a.data) - new Date(b.data));
-    }
-
-    const totalResultados = resultados.length;
-    const resultadosPaginados = paginar(resultados, parseInt(pagina), parseInt(limite));
-
-    return { resultadosPaginados, totalResultados };
-}
-
-// Rota para buscar processos
-app.get('/buscar-processos', (req, res) => {
-    const { termo, ordenarPor, pagina = 1, limite = 5 } = req.query;
-
-    const { resultadosPaginados, totalResultados } = buscarProcessos(termo, ordenarPor, pagina, limite);
-
-    if (resultadosPaginados.length === 0) {
-        return res.status(404).json({ message: 'Nenhum processo encontrado.' });
-    }
-
-    res.json({
-        resultados: resultadosPaginados,
-        pagina: parseInt(pagina),
-        limite: parseInt(limite),
-        totalResultados,
-        totalPaginas: Math.ceil(totalResultados / limite)
-    });
+    res.json(resultados)
 });
 
 app.get('/processos', (req, res) => { 
-    res.status(200).json(processjson);
+    res.status(200).json(processos);
 });
 
 // Rota para ver cadeias de processos
@@ -154,6 +121,10 @@ app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ message: 'Algo deu errado!' });
 });
+
+app.get('/', (req, res) => {
+    res.send('Hello World')
+})
 
 // Servidor rodando
 app.listen(PORT, () => {
