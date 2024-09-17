@@ -19,22 +19,20 @@ const processos = [
 ];
 
 const cadeiasDeProcessos = [
-    { id: 1, nome: 'Cadeia X', processos: ['Processo A', 'Processo B'] },
-    { id: 2, nome: 'Cadeia Y', processos: ['Processo B', 'Processo C'] }
+    { id: 1, nome: 'Cadeia X', processos: [1, 2] },
+    { id: 2, nome: 'Cadeia Y', processos: [3, 4] }
 ];
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// Função de paginação
-function paginar(array, pagina = 1, limite = 5) {
-    return array.slice((pagina - 1) * limite, pagina * limite);
-}
-
+app.get('/processos', (req, res) => { 
+    res.status(200).json(processos);
+});
 
 // Rota para buscar processos por nome
-app.get('/buscar-processos/:nome', async (req, res) => {
+app.get('/processos/:nome', async (req, res) => {
     const nome = req.params.nome.toLowerCase()
 
     const resultados = processos.filter(processo =>
@@ -48,8 +46,19 @@ app.get('/buscar-processos/:nome', async (req, res) => {
     res.json(resultados)
 });
 
-app.get('/processos', (req, res) => { 
-    res.status(200).json(processos);
+app.get('/cadeias-com-processos', (req, res) => {
+    // Mapeia as cadeias e retorna os nomes dos processos ao invés dos seus IDs
+    const cadeiasComProcessos = cadeiasDeProcessos.map(cadeia => {
+        const processosDaCadeia = cadeia.processos.map(idProcesso => {
+            return processos.find(processo => processo.id === idProcesso);
+        });
+        return {
+            nomeCadeia: cadeia.nome,
+            processos: processosDaCadeia
+        };
+    });
+
+    res.status(200).json(cadeiasComProcessos);
 });
 
 // Rota para ver cadeias de processos
