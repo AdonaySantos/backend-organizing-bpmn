@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
@@ -12,10 +13,10 @@ const SECRET_KEY = process.env.SECRET_KEY || crypto.randomBytes(64).toString('he
 // Usuários e processos em memória (para testes)
 let users = [];
 const processos = [
-    { id: 1, nome: 'Processo A', numero: '001', descricao: 'Descrição do Processo A', data: '2023-09-01' },
-    { id: 2, nome: 'Processo B', numero: '002', descricao: 'Descrição do Processo B', data: '2023-09-10' },
-    { id: 3, nome: 'Processo C', numero: '003', descricao: 'Descrição do Processo C', data: '2023-09-20' },
-    { id: 4, nome: 'Processo D', numero: '004', descricao: 'Descrição do Processo D', data: '2023-09-25' }
+    { id: 1, imagem: 'processoA.png', nome: 'Processo A', numero: '001', descricao: 'Descrição do Processo A', data: '2023-09-01' },
+    { id: 2, imagem: 'processoB.png', nome: 'Processo B', numero: '002', descricao: 'Descrição do Processo B', data: '2023-09-10' },
+    { id: 3, imagem: 'processoC.png', nome: 'Processo C', numero: '003', descricao: 'Descrição do Processo C', data: '2023-09-20' },
+    { id: 4, imagem: 'processoD.png', nome: 'Processo D', numero: '004', descricao: 'Descrição do Processo D', data: '2023-09-25' }
 ];
 
 const cadeiasDeProcessos = [
@@ -30,6 +31,9 @@ app.use(bodyParser.json());
 app.get('/processos', (req, res) => { 
     res.status(200).json(processos);
 });
+
+// Servir imagens da pasta "processos"
+app.use('/processos', express.static(path.join(__dirname, 'processos')));
 
 // Rota para buscar processos por nome
 app.get('/processos/:nome', async (req, res) => {
