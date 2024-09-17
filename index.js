@@ -15,8 +15,8 @@ let users = [];
 const processos = [
     { id: 1, imagem: 'processoA.png', nome: 'Processo A', numero: '001', descricao: 'Descrição do Processo A', data: '2023-09-01' },
     { id: 2, imagem: 'processoB.png', nome: 'Processo B', numero: '002', descricao: 'Descrição do Processo B', data: '2023-09-10' },
-    { id: 3, imagem: 'processoC.png', nome: 'Processo C', numero: '003', descricao: 'Descrição do Processo C', data: '2023-09-20' },
-    { id: 4, imagem: 'processoD.png', nome: 'Processo D', numero: '004', descricao: 'Descrição do Processo D', data: '2023-09-25' }
+    { id: 3, imagem: 'processoC.jpg', nome: 'Processo C', numero: '003', descricao: 'Descrição do Processo C', data: '2023-09-20' },
+    { id: 4, imagem: 'processoD.jpg', nome: 'Processo D', numero: '004', descricao: 'Descrição do Processo D', data: '2023-09-25' }
 ];
 
 const cadeiasDeProcessos = [
