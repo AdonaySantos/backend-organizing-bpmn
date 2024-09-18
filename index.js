@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 const SECRET_KEY = process.env.SECRET_KEY || crypto.randomBytes(64).toString('hex');
 
 // Usuários e processos em memória (para testes)
@@ -138,7 +138,7 @@ app.post('/forgot-password', (req, res) => {
         return res.status(400).json({ message: 'Usuário não encontrado' });
     } else {
         // Aqui você pode adicionar lógica para envio de e-mail de recuperação
-        res.status(200).json({ message: 'Recuperação de senha iniciada. Verifique seu e-mail.' });
+        res.status(200).json({ message: 'Recuperação iniciada. Verifique seu e-mail.' });
     }
 });
 
