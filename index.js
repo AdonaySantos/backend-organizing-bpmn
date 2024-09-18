@@ -130,14 +130,15 @@ app.post('/login', async (req, res) => {
 });
 
 // Rota protegida (exemplo: recuperação de senha)
-app.post('/forgot-password', authenticateToken, (req, res) => {
+app.post('/forgot-password', (req, res) => {
     const { name } = req.body;
 
     const user = users.find(user => user.name === name);
     if (!user) {
         return res.status(400).json({ message: 'Usuário não encontrado' });
     } else {
-        res.status(200).json({ message: 'Recuperação de senha iniciada' });
+        // Aqui você pode adicionar lógica para envio de e-mail de recuperação
+        res.status(200).json({ message: 'Recuperação de senha iniciada. Verifique seu e-mail.' });
     }
 });
 
