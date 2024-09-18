@@ -129,6 +129,18 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// Rota protegida (exemplo: recuperação de senha)
+app.post('/forgot-password', authenticateToken, (req, res) => {
+    const { name } = req.body;
+
+    const user = users.find(user => user.name === name);
+    if (!user) {
+        return res.status(400).json({ message: 'Usuário não encontrado' });
+    } else {
+        res.status(200).json({ message: 'Recuperação de senha iniciada' });
+    }
+});
+
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {
     console.error(err.stack);
