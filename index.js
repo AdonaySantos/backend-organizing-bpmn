@@ -36,7 +36,7 @@ app.get('/processos', (req, res) => {
 app.use('/processos', express.static(path.join(__dirname, 'processos')));
 
 // Rota para buscar processos por nome
-app.get('/processos/:nome', (req, res) => {
+app.get('/processos/:nome', async (req, res) => {
     const nome = req.params.nome.toLowerCase()
 
     const resultados = processos.filter(processo =>
