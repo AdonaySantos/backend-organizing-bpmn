@@ -209,7 +209,7 @@ function verifyAdmin(req, res, next) {
     }
 }
 
-app.get('/administração', verifyAdmin, (req, res) => {
+app.get('/administracao', verifyAdmin, (req, res) => {
     res.status(200).json({ message: 'Bem-vindo, administrador!' });
 });
 
