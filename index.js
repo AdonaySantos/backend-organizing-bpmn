@@ -217,7 +217,7 @@ app.post('/register', async (req, res) => {
 // Rota para login e geração de token JWT
 app.post('/login', async (req, res) => {
     const { name, password } = req.body;
-    const user = userList.find(user => user.name === name); // Use userList here
+    const user = userList.find(user => user.name === name); // Use userList aqui
 
     if (!user) {
         return res.status(400).json({ message: 'Credenciais inválidas' });
@@ -227,7 +227,7 @@ app.post('/login', async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (isMatch) {
             const token = jwt.sign(
-                { name: user.name, permission: user.permission }, // Include permission in the payload
+                { name: user.name, permission: user.permission }, // Inclui permission no payload
                 SECRET_KEY,
                 { expiresIn: '1h' }
             );
@@ -239,6 +239,7 @@ app.post('/login', async (req, res) => {
         res.status(500).json({ message: 'Erro no servidor' });
     }
 });
+
 
 
 // Rota protegida (exemplo: recuperação de senha)
