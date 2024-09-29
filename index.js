@@ -190,6 +190,29 @@ async function createAdminUser() {
     await createAdminUser();
 })();
 
+function verifyAdmin(req, res, next) {
+    const token = req.headers['authorization'];
+
+    if (!token) {
+        return res.status(403).json({ message: 'Token não fornecido' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, SECRET_KEY);
+        if (decoded.permission === 'admin') {
+            next(); // Permite continuar para a rota
+        } else {
+            return res.status(403).json({ message: 'Acesso negado, somente administradores' });
+        }
+    } catch (error) {
+        return res.status(401).json({ message: 'Token inválido' });
+    }
+}
+
+app.get('/administração', verifyAdmin, (req, res) => {
+    res.status(200).json({ message: 'Bem-vindo, administrador!' });
+});
+
 // Rota para registrar um usuário
 app.post('/register', async (req, res) => {
     const { name, password } = req.body;
