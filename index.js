@@ -37,7 +37,8 @@ const processosPorDepartamento = [
     ] },
     { nome: 'RH', processos: [
         processos[1], // Processo B
-        processos[6]  // Processo G
+        processos[6], // Processo G
+        processos[4]  // Processo E
     ] },
     { nome: 'Vendas', processos: [
         processos[2], // Processo C
@@ -56,7 +57,9 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.get('/processos', (req, res) => { 
-    res.status(200).json(processos);
+    // Filtra os processos com status "ativo"
+    const processosAtivos = processos.filter(processo => processo.status === "ativo");
+    res.status(200).json(processosAtivos);
 });
 
 // Servir imagens da pasta "processos"
@@ -88,36 +91,52 @@ app.get('/processos-inativos', (req, res) => {
 });
 
 app.get('/cadeias-com-processos', (req, res) => {
-    // Mapeia as cadeias e retorna os nomes dos processos ao invés dos seus IDs
+    // Mapeia as cadeias e retorna os nomes dos processos ao invés dos seus IDs,
+    // filtrando apenas os processos com status "ativo"
     const cadeiasComProcessos = cadeiasDeProcessos.map(cadeia => {
-        const processosDaCadeia = cadeia.processos.map(idProcesso => {
-            return processos.find(processo => processo.id === idProcesso);
-        });
+        const processosDaCadeia = cadeia.processos
+            .map(idProcesso => processos.find(processo => processo.id === idProcesso))
+            .filter(processo => processo.status === "ativo"); // Filtra apenas processos ativos
         return {
             nomeCadeia: cadeia.nome,
             processos: processosDaCadeia
         };
     });
 
+    // Verifica se existem cadeias com processos ativos
+    if (cadeiasComProcessos.every(cadeia => cadeia.processos.length === 0)) {
+        return res.status(404).json({ message: 'Nenhuma cadeia com processos ativos encontrada.' });
+    }
+
     res.status(200).json(cadeiasComProcessos);
 });
 
 // rota para buscar por departamentos
 app.get('/processos-por-departamento', (req, res) => {
+    // Retorna a lista de processos agrupados por departamento,
+    // filtrando apenas os processos com status "ativo"
     const processosPorDepartamentoResponse = processosPorDepartamento.map(departamento => {
+        const processosAtivos = departamento.processos.filter(processo => processo.status === "ativo");
         return {
             nomeDepartamento: departamento.nome,
-            processos: departamento.processos
+            processos: processosAtivos // Retorna apenas processos ativos
         };
-    });
+    }).filter(departamento => departamento.processos.length > 0); // Remove departamentos sem processos ativos
+
+    // Verifica se existem departamentos com processos ativos
+    if (processosPorDepartamentoResponse.length === 0) {
+        return res.status(404).json({ message: 'Nenhum processo ativo encontrado em nenhum departamento.' });
+    }
 
     res.status(200).json(processosPorDepartamentoResponse);
 });
 
 // rota de busca por processos interdeparmentais
 app.get('/processos-interdepartamentais', (req, res) => {
-    // Filtra os processos que são do tipo "interdepartamental"
-    const processosInterdepartamentais = processos.filter(processo => processo.tipo === 'interdepartamental');
+    // Filtra os processos que são do tipo "interdepartamental" e estão ativos
+    const processosInterdepartamentais = processos.filter(processo => 
+        processo.tipo === 'interdepartamental' && processo.status === "ativo"
+    );
 
     // Mapeia cada processo interdepartamental para incluir os departamentos associados
     const processosComDepartamentos = processosInterdepartamentais.map(processo => {
@@ -125,7 +144,7 @@ app.get('/processos-interdepartamentais', (req, res) => {
         const departamentosAssociados = processosPorDepartamento
             .filter(departamento => departamento.processos.some(p => p.id === processo.id))
             .map(departamento => departamento.nome);
-        
+
         return {
             ...processo,
             departamentos: departamentosAssociados
@@ -134,7 +153,7 @@ app.get('/processos-interdepartamentais', (req, res) => {
 
     // Verifica se existem processos interdepartamentais
     if (processosComDepartamentos.length === 0) {
-        return res.status(404).json({ message: 'Nenhum processo interdepartamental encontrado.' });
+        return res.status(404).json({ message: 'Nenhum processo interdepartamental ativo encontrado.' });
     }
 
     res.status(200).json(processosComDepartamentos);
