@@ -159,19 +159,36 @@ app.get('/processos-interdepartamentais', (req, res) => {
     res.status(200).json(processosComDepartamentos);
 });
 
-// Cria um usuário de teste ao iniciar o servidor
+
+const userList = [];
+
 async function createTestUser() {
     const name = 'Teste User';
     const password = 'Senha123';
-
     const hashedPassword = await bcrypt.hash(password, 10);
+    const permission = 'user';
 
-    users.push({ name, password: hashedPassword });
+    userList.push({ name, password: hashedPassword, permission });
 
-    console.log('Usuário de teste criado:', { name, password: hashedPassword });
+    console.log('Usuário de teste criado:', { name, permission });
 }
 
-createTestUser();
+async function createAdminUser() {
+    const name = 'Admin User';
+    const password = 'Admin123';
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const permission = 'admin';
+
+    userList.push({ name, password: hashedPassword, permission });
+
+    console.log('Usuário admin criado:', { name, permission });
+}
+
+// Criar usuários
+(async () => {
+    await createTestUser();
+    await createAdminUser();
+})();
 
 // Rota para registrar um usuário
 app.post('/register', async (req, res) => {
