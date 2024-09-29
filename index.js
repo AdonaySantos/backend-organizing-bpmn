@@ -13,16 +13,20 @@ const SECRET_KEY = process.env.SECRET_KEY || crypto.randomBytes(64).toString('he
 // Usuários e processos em memória (para testes)
 let users = [];
 const processos = [
-    { id: 1, imagem: 'processoA.png', nome: 'Processo A', numero: '001', descricao: 'Descrição do Processo A', data: '2023-09-01', status:'ativo' },
-    { id: 2, imagem: 'processoB.png', nome: 'Processo B', numero: '002', descricao: 'Descrição do Processo B', data: '2023-09-10', status:'ativo' },
-    { id: 3, imagem: 'processoC.jpg', nome: 'Processo C', numero: '003', descricao: 'Descrição do Processo C', data: '2023-09-20', status:'ativo' },
-    { id: 4, imagem: 'processoD.jpg', nome: 'Processo D', numero: '004', descricao: 'Descrição do Processo D', data: '2023-09-25', status:'ativo' },
-    { id: 5, imagem: 'processoA.jpg', nome: 'Processo E', numero: '005', descricao: 'Descrição do Processo E', data: '2023-09-26', status:'inativo' },
+    { id: 1, imagem: 'processoA.png', nome: 'Processo A', numero: '001', descricao: 'Descrição do Processo A', data: '2023-09-01', departamento: 'Financeiro', tipo: 'departamental', status: 'ativo' },
+    { id: 2, imagem: 'processoB.png', nome: 'Processo B', numero: '002', descricao: 'Descrição do Processo B', data: '2023-09-10', departamento: ['RH', 'TI'], tipo: 'interdepartamental', status: 'ativo' },
+    { id: 3, imagem: 'processoC.jpg', nome: 'Processo C', numero: '003', descricao: 'Descrição do Processo C', data: '2023-09-20', departamento: 'Vendas', tipo: 'departamental', status: 'ativo' },
+    { id: 4, imagem: 'processoD.jpg', nome: 'Processo D', numero: '004', descricao: 'Descrição do Processo D', data: '2023-09-25', departamento: ['Financeiro', 'Vendas'], tipo: 'interdepartamental', status: 'ativo' },
+    { id: 5, imagem: 'processoA.png', nome: 'Processo E', numero: '005', descricao: 'Descrição do Processo E', data: '2023-09-30', departamento: 'TI', tipo: 'departamental', status: 'inativo' },
+    { id: 6, imagem: 'processoC.jpg', nome: 'Processo F', numero: '006', descricao: 'Descrição do Processo F', data: '2023-10-01', departamento: ['TI', 'Financeiro'], tipo: 'interdepartamental', status: 'inativo' },
+    { id: 7, imagem: 'processoB.png', nome: 'Processo G', numero: '007', descricao: 'Descrição do Processo G', data: '2023-10-05', departamento: 'RH', tipo: 'departamental', status: 'ativo' },
+    { id: 8, imagem: 'processoD.jpg', nome: 'Processo H', numero: '008', descricao: 'Descrição do Processo H', data: '2023-10-10', departamento: ['Vendas', 'TI'], tipo: 'interdepartamental', status: 'ativo' }
 ];
 
 const cadeiasDeProcessos = [
     { id: 1, nome: 'Cadeia X', processos: [1, 2] },
-    { id: 2, nome: 'Cadeia Y', processos: [3, 4] }
+    { id: 2, nome: 'Cadeia Y', processos: [3, 4] },
+    { id: 3, nome: 'Cadeia Z', processos: [5, 6, 7, 8] }
 ];
 
 // Middleware
@@ -76,9 +80,23 @@ app.get('/cadeias-com-processos', (req, res) => {
     res.status(200).json(cadeiasComProcessos);
 });
 
-// Rota para ver cadeias de processos
-app.get('/ver-cadeias', (req, res) => {
-    res.json(cadeiasDeProcessos);
+// rota para buscar por departamentos
+app.get('/processos-por-departamento/:departamento', (req, res) => {
+    const departamento = req.params.departamento.toLowerCase();
+
+    // Filtra os processos que pertencem ao departamento solicitado
+    const processosDoDepartamento = processos.filter(processo => {
+        if (Array.isArray(processo.departamento)) {
+            return processo.departamento.map(dep => dep.toLowerCase()).includes(departamento);
+        }
+        return processo.departamento.toLowerCase() === departamento;
+    });
+
+    if (processosDoDepartamento.length === 0) {
+        return res.status(404).send('Nenhum processo encontrado para este departamento.');
+    }
+
+    res.status(200).json(processosDoDepartamento);
 });
 
 // Cria um usuário de teste ao iniciar o servidor
