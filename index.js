@@ -13,10 +13,11 @@ const SECRET_KEY = process.env.SECRET_KEY || crypto.randomBytes(64).toString('he
 // Usuários e processos em memória (para testes)
 let users = [];
 const processos = [
-    { id: 1, imagem: 'processoA.png', nome: 'Processo A', numero: '001', descricao: 'Descrição do Processo A', data: '2023-09-01' },
-    { id: 2, imagem: 'processoB.png', nome: 'Processo B', numero: '002', descricao: 'Descrição do Processo B', data: '2023-09-10' },
-    { id: 3, imagem: 'processoC.jpg', nome: 'Processo C', numero: '003', descricao: 'Descrição do Processo C', data: '2023-09-20' },
-    { id: 4, imagem: 'processoD.jpg', nome: 'Processo D', numero: '004', descricao: 'Descrição do Processo D', data: '2023-09-25' }
+    { id: 1, imagem: 'processoA.png', nome: 'Processo A', numero: '001', descricao: 'Descrição do Processo A', data: '2023-09-01', status:'ativo' },
+    { id: 2, imagem: 'processoB.png', nome: 'Processo B', numero: '002', descricao: 'Descrição do Processo B', data: '2023-09-10', status:'ativo' },
+    { id: 3, imagem: 'processoC.jpg', nome: 'Processo C', numero: '003', descricao: 'Descrição do Processo C', data: '2023-09-20', status:'ativo' },
+    { id: 4, imagem: 'processoD.jpg', nome: 'Processo D', numero: '004', descricao: 'Descrição do Processo D', data: '2023-09-25', status:'ativo' },
+    { id: 5, imagem: 'processoA.jpg', nome: 'Processo E', numero: '005', descricao: 'Descrição do Processo E', data: '2023-09-26', status:'inativo' },
 ];
 
 const cadeiasDeProcessos = [
@@ -48,6 +49,16 @@ app.get('/processos/:nome', async (req, res) => {
     }
 
     res.json(resultados)
+});
+
+app.get('/processos-inativos', (req, res) => {
+    const processosInativos = processos.filter(processo => processo.status === 'inativo');
+    
+    if (processosInativos.length === 0) {
+        return res.status(404).json({ message: 'Nenhum processo inativo encontrado.' });
+    }
+
+    res.status(200).json(processosInativos);
 });
 
 app.get('/cadeias-com-processos', (req, res) => {
