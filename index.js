@@ -114,6 +114,32 @@ app.get('/processos-por-departamento', (req, res) => {
     res.status(200).json(processosPorDepartamentoResponse);
 });
 
+// rota de busca por processos interdeparmentais
+app.get('/processos-interdepartamentais', (req, res) => {
+    // Filtra os processos que são do tipo "interdepartamental"
+    const processosInterdepartamentais = processos.filter(processo => processo.tipo === 'interdepartamental');
+
+    // Mapeia cada processo interdepartamental para incluir os departamentos associados
+    const processosComDepartamentos = processosInterdepartamentais.map(processo => {
+        // Encontra todos os departamentos que contêm este processo
+        const departamentosAssociados = processosPorDepartamento
+            .filter(departamento => departamento.processos.some(p => p.id === processo.id))
+            .map(departamento => departamento.nome);
+        
+        return {
+            ...processo,
+            departamentos: departamentosAssociados
+        };
+    });
+
+    // Verifica se existem processos interdepartamentais
+    if (processosComDepartamentos.length === 0) {
+        return res.status(404).json({ message: 'Nenhum processo interdepartamental encontrado.' });
+    }
+
+    res.status(200).json(processosComDepartamentos);
+});
+
 // Cria um usuário de teste ao iniciar o servidor
 async function createTestUser() {
     const name = 'Teste User';
