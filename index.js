@@ -214,7 +214,7 @@ app.get('/administracao', verifyAdmin, (req, res) => {
 
 // Rota para registrar um usuário
 app.post('/register', async (req, res) => {
-    const { name, password } = req.body;
+    const { name, password, permission } = req.body;
 
     if (!name || name.length < 3) {
         return res.status(400).json({ message: 'O nome deve ter pelo menos 3 caracteres.' });
@@ -224,6 +224,10 @@ app.post('/register', async (req, res) => {
         return res.status(400).json({ message: 'Senha inválida. A senha deve conter pelo menos 6 caracteres, incluindo uma letra maiúscula e um número.' });
     }
 
+    if(permission != "admin" && permission != "user") {
+        return res.status(400).json({ message: 'Permissão inválida. A permissão deve ser "admin" ou "user"'})
+    }
+
     const existingUser = userList.find(user => user.name === name);
     if (existingUser) {
         return res.status(400).json({ message: 'Usuário já existe' });
@@ -231,7 +235,7 @@ app.post('/register', async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        userList.push({ name, password: hashedPassword });
+        userList.push({ name, password: hashedPassword , permission });
         return res.status(201).json({ message: 'Usuário registrado com sucesso' });
     } catch (error) {
         console.error('Erro ao registrar usuário:', error);
