@@ -11,7 +11,6 @@ const PORT = 5000;
 const SECRET_KEY = process.env.SECRET_KEY || crypto.randomBytes(64).toString('hex');
 
 // Usuários e processos em memória (para testes)
-let users = [];
 const processos = [
     { id: 1, imagem: 'processoA.png', nome: 'Processo A', numero: '001', descricao: 'Descrição do Processo A', data: '2023-09-01', tipo: 'departamental', status: "ativo" },
     { id: 2, imagem: 'processoB.png', nome: 'Processo B', numero: '002', descricao: 'Descrição do Processo B', data: '2023-09-10', tipo: 'interdepartamental', status: "ativo" },
@@ -216,24 +215,27 @@ app.get('/administracao', verifyAdmin, (req, res) => {
 // Rota para registrar um usuário
 app.post('/register', async (req, res) => {
     const { name, password } = req.body;
+
     if (!name || name.length < 3) {
         return res.status(400).json({ message: 'O nome deve ter pelo menos 3 caracteres.' });
     }
+
     if (password.length < 6 || !/[A-Z]/.test(password) || !/\d/.test(password)) {
-        return res.status(400).json({ message: 'Senha inválida.' });
+        return res.status(400).json({ message: 'Senha inválida. A senha deve conter pelo menos 6 caracteres, incluindo uma letra maiúscula e um número.' });
     }
 
-    const existingUser = users.find(user => user.name === name);
+    const existingUser = userList.find(user => user.name === name);
     if (existingUser) {
         return res.status(400).json({ message: 'Usuário já existe' });
     }
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        users.push({ name, password: hashedPassword });
-        res.status(201).json({ message: 'Usuário registrado com sucesso' });
+        userList.push({ name, password: hashedPassword });
+        return res.status(201).json({ message: 'Usuário registrado com sucesso' });
     } catch (error) {
-        res.status(500).json({ message: 'Erro ao registrar usuário' });
+        console.error('Erro ao registrar usuário:', error);
+        return res.status(500).json({ message: 'Erro ao registrar usuário' });
     }
 });
 
@@ -269,7 +271,7 @@ app.post('/login', async (req, res) => {
 app.post('/forgot-password', (req, res) => {
     const { name } = req.body;
 
-    const user = users.find(user => user.name === name);
+    const user = userList.find(user => user.name === name);
     if (!user) {
         return res.status(400).json({ message: 'Usuário não encontrado' });
     } else {
