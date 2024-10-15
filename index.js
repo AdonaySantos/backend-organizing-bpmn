@@ -223,10 +223,32 @@ app.put('/desativar', async (req, res) => {
             return res.status(404).send('Usuário não encontrado.');
         }
 
-        user.active = "false"; // Supondo que você tenha um campo active no modelo de usuário
+        user.active = "false"; 
         res.send('Usuário desativado com sucesso!');
     } catch (error) {
         res.status(400).send('Erro ao desativar o usuário: ' + error.message);
+    }
+});
+
+app.put('/editar', async (req, res) => {
+    const { name, newUserName, newPassword, newPermission } = req.body;
+    const user = userList.find(user => user.name === name);
+
+    try {
+        if (!user) {
+            return res.status(404).send('Usuário não encontrado.');
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        user.name = newUserName;
+        user.password = hashedPassword;
+        user.permission = newPermission;
+
+        res.send('Usuário editado com sucesso!');
+        console.log(newUserName, newPassword, newPermission);
+    } catch (error) {
+        res.status(400).send('Erro ao editar o usuário: ' + error.message);
     }
 });
 
