@@ -170,7 +170,7 @@ async function createTestUser() {
 
     userList.push({ name, password: hashedPassword, permission, active });
 
-    console.log('Usuário de teste criado:', { name, permission });
+    console.log('Usuário de teste criado:', { name, password, permission });
 }
 
 async function createAdminUser() {
@@ -182,7 +182,7 @@ async function createAdminUser() {
 
     userList.push({ name, password: hashedPassword, permission, active });
 
-    console.log('Usuário admin criado:', { name, permission });
+    console.log('Usuário admin criado:', { name, password, permission });
 }
 
 // Criar usuários
