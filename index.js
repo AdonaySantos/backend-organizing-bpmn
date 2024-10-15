@@ -166,8 +166,9 @@ async function createTestUser() {
     const password = 'Senha123';
     const hashedPassword = await bcrypt.hash(password, 10);
     const permission = 'user';
+    const active = "true";
 
-    userList.push({ name, password: hashedPassword, permission });
+    userList.push({ name, password: hashedPassword, permission, active });
 
     console.log('Usuário de teste criado:', { name, permission });
 }
@@ -177,8 +178,9 @@ async function createAdminUser() {
     const password = 'Admin123';
     const hashedPassword = await bcrypt.hash(password, 10);
     const permission = 'admin';
+    const active = "true";
 
-    userList.push({ name, password: hashedPassword, permission });
+    userList.push({ name, password: hashedPassword, permission, active });
 
     console.log('Usuário admin criado:', { name, permission });
 }
@@ -212,6 +214,22 @@ app.get('/administracao', verifyAdmin, (req, res) => {
     res.status(200).json({ message: 'Bem-vindo, administrador!' });
 });
 
+app.put('/desativar', async (req, res) => {
+    const { name } = req.body;
+    const user = userList.find(user => user.name === name);
+
+    try {
+        if (!user) {
+            return res.status(404).send('Usuário não encontrado.');
+        }
+
+        user.active = "false"; // Supondo que você tenha um campo active no modelo de usuário
+        res.send('Usuário desativado com sucesso!');
+    } catch (error) {
+        res.status(400).send('Erro ao desativar o usuário: ' + error.message);
+    }
+});
+
 // Rota para registrar um usuário
 app.post('/register', async (req, res) => {
     const { name, password, permission } = req.body;
@@ -235,7 +253,7 @@ app.post('/register', async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        userList.push({ name, password: hashedPassword , permission });
+        userList.push({ name, password: hashedPassword , permission, active: "true" });
         return res.status(201).json({ message: 'Usuário registrado com sucesso' });
     } catch (error) {
         console.error('Erro ao registrar usuário:', error);
@@ -250,6 +268,9 @@ app.post('/login', async (req, res) => {
 
     if (!user) {
         return res.status(400).json({ message: 'Credenciais inválidas' });
+    } 
+    if (user.active === "false") {
+        return res.status(403).json({ message: 'Usuário desativado. Entre em contato com o administrador.' });
     }
 
     try {
