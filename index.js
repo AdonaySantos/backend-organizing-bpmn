@@ -236,9 +236,9 @@ app.put('/desativar-processo', async(req, res) => {
 
     try {
         if (!processo) {
-            return res.status(400).send('Proocesso não encontrado.');
+            return res.status(400).send('Processo não encontrado.');
         }
-
+        
         processo.status = "inativo";
         res.send("Processo desativado com sucesso!")
     } catch (error) {
