@@ -230,6 +230,22 @@ app.put('/desativar', async (req, res) => {
     }
 });
 
+app.put('/desativar-processo', async(req, res) => {
+    const { name } = req.body;
+    const processo = processos.find(processo => processo.name == name);
+
+    try {
+        if (!processo) {
+            return res.status(400).send('Proocesso não encontrado.');
+        }
+
+        processo.status = "inativo";
+        res.send("Processo desativado com sucesso!")
+    } catch (error) {
+        res.status(400).send('Erro ao editar o usuário: ' + error.message);
+    }
+});
+
 app.put('/editar', async (req, res) => {
     const { name, newUserName, newPassword, newPermission } = req.body;
     const user = userList.find(user => user.name === name);
