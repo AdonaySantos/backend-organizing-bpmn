@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const multer = require("multer");
 
 const app = express();
 const PORT = 5000;
@@ -12,20 +13,34 @@ const SECRET_KEY = process.env.SECRET_KEY || crypto.randomBytes(64).toString('he
 
 // Usuários e processos em memória (para testes)
 const processos = [
-    { id: 1, imagem: 'processoA.png', nome: 'Processo A', numero: '001', descricao: 'Descrição do Processo A', data: '2023-09-01', tipo: 'departamental', status: "ativo" },
-    { id: 2, imagem: 'processoB.png', nome: 'Processo B', numero: '002', descricao: 'Descrição do Processo B', data: '2023-09-10', tipo: 'interdepartamental', status: "ativo" },
-    { id: 3, imagem: 'processoC.jpg', nome: 'Processo C', numero: '003', descricao: 'Descrição do Processo C', data: '2023-09-20', tipo: 'departamental', status: "ativo" },
-    { id: 4, imagem: 'processoD.jpg', nome: 'Processo D', numero: '004', descricao: 'Descrição do Processo D', data: '2023-09-25', tipo: 'interdepartamental', status: "ativo" },
-    { id: 5, imagem: 'processoA.png', nome: 'Processo E', numero: '005', descricao: 'Descrição do Processo E', data: '2023-09-30', tipo: 'departamental', status: "inativo" },
-    { id: 6, imagem: 'processoC.jpg', nome: 'Processo F', numero: '006', descricao: 'Descrição do Processo F', data: '2023-10-01', tipo: 'interdepartamental' , status: "inativo" },
-    { id: 7, imagem: 'processoB.png', nome: 'Processo G', numero: '007', descricao: 'Descrição do Processo G', data: '2023-10-05', tipo: 'departamental', status: "ativo" },
-    { id: 8, imagem: 'processoD.jpg', nome: 'Processo H', numero: '008', descricao: 'Descrição do Processo H', data: '2023-10-10', tipo: 'interdepartamental', status: "ativo" }
+    { id: 1, imagem: 'processoa.png', nome: 'Processo A', numero: '1', descricao: 'Descrição do Processo A', data: '2023-09-01', tipo: 'departamental', status: "ativo", categoria: "subprocesso" },
+    { id: 2, imagem: 'processob.png', nome: 'Processo B', numero: '2', descricao: 'Descrição do Processo B', data: '2023-09-10', tipo: 'interdepartamental', status: "ativo", categoria: "processo" },
+    { id: 3, imagem: 'processoc.jpg', nome: 'Processo C', numero: '3', descricao: 'Descrição do Processo C', data: '2023-09-20', tipo: 'departamental', status: "ativo", categoria: "subprocesso" },
+    { id: 4, imagem: 'processod.jpg', nome: 'Processo D', numero: '4', descricao: 'Descrição do Processo D', data: '2023-09-25', tipo: 'interdepartamental', status: "ativo", categoria: "processo" },
+    { id: 5, imagem: 'processoa.png', nome: 'Processo E', numero: '5', descricao: 'Descrição do Processo E', data: '2023-09-30', tipo: 'departamental', status: "inativo", categoria: "subprocesso" },
+    { id: 6, imagem: 'processoc.jpg', nome: 'Processo F', numero: '6', descricao: 'Descrição do Processo F', data: '2023-10-01', tipo: 'interdepartamental', status: "inativo", categoria: "processo" },
+    { id: 7, imagem: 'processob.png', nome: 'Processo G', numero: '7', descricao: 'Descrição do Processo G', data: '2023-10-05', tipo: 'departamental', status: "ativo", categoria: "processo" },
+    { id: 8, imagem: 'processoD.jpg', nome: 'Processo H', numero: '8', descricao: 'Descrição do Processo H', data: '2023-10-10', tipo: 'interdepartamental', status: "ativo", categoria: "subprocesso" }
 ];
 
 const cadeiasDeProcessos = [
     { id: 1, nome: 'Cadeia X', processos: [1, 2] },
     { id: 2, nome: 'Cadeia Y', processos: [3, 4] },
     { id: 3, nome: 'Cadeia Z', processos: [5, 6, 7, 8] }
+];
+
+const processosMain = [
+    {
+        processo: processos[3], 
+        subprocessos: [processos[0], processos[4]]
+    },
+    {
+        processo: processos[1], 
+        subprocessos: [processos[2], processos[7]]
+    },
+    {
+        processo: processos[6], subprocessos: [] 
+    }
 ];
 
 const processosPorDepartamento = [
@@ -55,6 +70,123 @@ const processosPorDepartamento = [
 app.use(cors());
 app.use(bodyParser.json());
 
+// Configuração de armazenamento do multer
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      const destinationPath =
+        file.fieldname === "diagrama" ? "./processos" : "./documentos";
+      cb(null, destinationPath);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + "-" + file.originalname);
+    },
+  });
+  
+  const upload = multer({
+    storage: storage,
+    limits: { fileSize: 3 * 1024 * 1024 },
+    fileFilter: function (req, file, cb) {
+      if (
+        (file.fieldname === "diagrama" &&
+          ["image/jpeg", "image/png"].includes(file.mimetype)) ||
+        (file.fieldname === "documento" &&
+          [
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          ].includes(file.mimetype))
+      ) {
+        cb(null, true);
+      } else {
+        cb(new Error("Tipo de arquivo não permitido"));
+      }
+    },
+  });
+
+function validateProcessFields(req, res) {
+    const { nome, numero, descricao, categoria, processoMain } = req.body;
+    if (!nome || nome.length < 3) {
+        return 'O nome deve ter pelo menos 3 caracteres.';
+    }
+    if (!numero) {
+        return 'O número do processo é obrigatório.';
+    }
+    if (!descricao || descricao.length < 5) {
+        return 'A descrição deve ter pelo menos 5 caracteres.';
+    }
+    if (categoria === 'subprocesso' && !processoMain) {
+        return 'O processo pai é obrigatório para subprocessos.';
+    }
+    if (categoria === 'subprocesso' && processoMain) {
+        const processoExistente = processos.find(p => p.nome === processoMain);
+        if (!processoExistente) {
+            return 'O processo pai não existe.';
+        }
+    }
+    return null;
+}
+
+// Rota para criar um novo processo
+app.post('/processos', upload.fields([{ name: "diagrama" }, { name: "documento" }]), (req, res) => {
+    const error = validateProcessFields(req, res)
+    if(error) return res.status(400).json({ message: error })
+
+    const { nome, numero, descricao, categoria, processoMain, cadeia, departamentos } = req.body;
+    const tipoProcesso = departamentos.length > 1 ? 'interdepartamental' : 'departamental';
+
+    // Cria o novo processo
+    const novoProcesso = {
+        id: processos.length + 1,
+        nome,
+        numero,
+        descricao,
+        data: new Date().toISOString().split('T')[0],
+        tipo: tipoProcesso,
+        status: "ativo",
+        categoria
+    };
+
+    // Adiciona o novo processo à lista de processos
+    processos.push(novoProcesso);
+
+    // Associa o processo aos departamentos, se necessário
+    if (departamentos) {
+        for (const dep of departamentos) {
+            const departamento = processosPorDepartamento.find(d => d.nome === dep);
+            if (!departamento) {
+                return res.status(400).json({ message: 'O departamento não existe.' });
+            }
+            departamento.processos.push(novoProcesso);
+        }
+    }
+
+    // Lógica para Cadeias de Processos
+    if (cadeia) {
+        const cadeiaEncontrada = cadeiasDeProcessos.find(c => c.nome === cadeia);
+        if (cadeiaEncontrada) {
+            cadeiaEncontrada.processos.push(novoProcesso.id);
+        } else {
+            const novaCadeia = { id: cadeiasDeProcessos.length + 1, nome: cadeia, processos: [novoProcesso.id] };
+            cadeiasDeProcessos.push(novaCadeia);
+        }
+    }
+
+    if (categoria === 'subprocesso' && processoMain) {
+        const processoAssociado = processosMain.find(pm => pm.processo.nome === processoMain);
+        
+        if (!processoAssociado) {
+            return res.status(404).json({ message: 'O processo principal não existe.' });
+        }
+        
+        // Adiciona o subprocesso à lista de subprocessos do processo principal
+        processoAssociado.subprocessos.push(novoProcesso);
+    }
+
+    // Retorna a resposta de sucesso
+    res.status(201).json({ message: 'Processo criado com sucesso!', processo: novoProcesso });
+});
+
 app.get('/processos', (req, res) => { 
     // Filtra os processos com status "ativo"
     const processosAtivos = processos.filter(processo => processo.status === "ativo");
@@ -77,6 +209,10 @@ app.get('/processos/:nome', async (req, res) => {
     }
 
     res.json(resultados)
+});
+
+app.get("/subprocessos", (req, res) => {
+    res.json(processosMain.processo.nome && processosMain.subprocessos);
 });
 
 app.get('/processos-inativos', (req, res) => {
