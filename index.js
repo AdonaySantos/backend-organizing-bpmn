@@ -20,7 +20,7 @@ const processos = [
     { id: 5, imagem: 'processoa.png', nome: 'Processo E', numero: '5', descricao: 'Descrição do Processo E', data: '2023-09-30', tipo: 'departamental', status: "inativo", categoria: "subprocesso" },
     { id: 6, imagem: 'processoc.jpg', nome: 'Processo F', numero: '6', descricao: 'Descrição do Processo F', data: '2023-10-01', tipo: 'interdepartamental', status: "inativo", categoria: "processo" },
     { id: 7, imagem: 'processob.png', nome: 'Processo G', numero: '7', descricao: 'Descrição do Processo G', data: '2023-10-05', tipo: 'departamental', status: "ativo", categoria: "processo" },
-    { id: 8, imagem: 'processoD.jpg', nome: 'Processo H', numero: '8', descricao: 'Descrição do Processo H', data: '2023-10-10', tipo: 'interdepartamental', status: "ativo", categoria: "subprocesso" }
+    { id: 8, imagem: 'processod.jpg', nome: 'Processo H', numero: '8', descricao: 'Descrição do Processo H', data: '2023-10-10', tipo: 'interdepartamental', status: "ativo", categoria: "subprocesso" }
 ];
 
 const cadeiasDeProcessos = [
@@ -134,10 +134,12 @@ app.post('/processos', upload.fields([{ name: "diagrama" }, { name: "documento" 
 
     const { nome, numero, descricao, categoria, processoMain, cadeia, departamentos } = req.body;
     const tipoProcesso = departamentos.length > 1 ? 'interdepartamental' : 'departamental';
+    const nomeImagem = req.files['diagrama'][0].filename
 
     // Cria o novo processo
     const novoProcesso = {
         id: processos.length + 1,
+        imagem: nomeImagem, // quero que a imagem seja o nome do diagrama do upload
         nome,
         numero,
         descricao,
