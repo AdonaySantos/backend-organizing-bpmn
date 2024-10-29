@@ -13,13 +13,13 @@ const SECRET_KEY = process.env.SECRET_KEY || crypto.randomBytes(64).toString('he
 
 // Usuários e processos em memória (para testes)
 const processos = [
-    { id: 1, imagem: 'processoa.png', nome: 'Processo A', numero: '1', descricao: 'Descrição do Processo A', data: '2023-09-01', tipo: 'departamental', status: "ativo", categoria: "subprocesso" },
-    { id: 2, imagem: 'processob.png', nome: 'Processo B', numero: '2', descricao: 'Descrição do Processo B', data: '2023-09-10', tipo: 'interdepartamental', status: "ativo", categoria: "processo" },
-    { id: 3, imagem: 'processoc.jpg', nome: 'Processo C', numero: '3', descricao: 'Descrição do Processo C', data: '2023-09-20', tipo: 'departamental', status: "ativo", categoria: "subprocesso" },
-    { id: 4, imagem: 'processod.jpg', nome: 'Processo D', numero: '4', descricao: 'Descrição do Processo D', data: '2023-09-25', tipo: 'interdepartamental', status: "ativo", categoria: "processo" },
-    { id: 5, imagem: 'processoa.png', nome: 'Processo E', numero: '5', descricao: 'Descrição do Processo E', data: '2023-09-30', tipo: 'departamental', status: "inativo", categoria: "subprocesso" },
-    { id: 6, imagem: 'processoc.jpg', nome: 'Processo F', numero: '6', descricao: 'Descrição do Processo F', data: '2023-10-01', tipo: 'interdepartamental', status: "inativo", categoria: "processo" },
-    { id: 7, imagem: 'processob.png', nome: 'Processo G', numero: '7', descricao: 'Descrição do Processo G', data: '2023-10-05', tipo: 'departamental', status: "ativo", categoria: "processo" },
+    { id: 1, imagem: 'processoA.png', nome: 'Processo A', numero: '1', descricao: 'Descrição do Processo A', data: '2023-09-01', tipo: 'departamental', status: "ativo", categoria: "subprocesso" },
+    { id: 2, imagem: 'processoB.png', nome: 'Processo B', numero: '2', descricao: 'Descrição do Processo B', data: '2023-09-10', tipo: 'interdepartamental', status: "ativo", categoria: "processo" },
+    { id: 3, imagem: 'processoC.jpg', nome: 'Processo C', numero: '3', descricao: 'Descrição do Processo C', data: '2023-09-20', tipo: 'departamental', status: "ativo", categoria: "subprocesso" },
+    { id: 4, imagem: 'processoD.jpg', nome: 'Processo D', numero: '4', descricao: 'Descrição do Processo D', data: '2023-09-25', tipo: 'interdepartamental', status: "ativo", categoria: "processo" },
+    { id: 5, imagem: 'processoA.png', nome: 'Processo E', numero: '5', descricao: 'Descrição do Processo E', data: '2023-09-30', tipo: 'departamental', status: "inativo", categoria: "subprocesso" },
+    { id: 6, imagem: 'processoC.jpg', nome: 'Processo F', numero: '6', descricao: 'Descrição do Processo F', data: '2023-10-01', tipo: 'interdepartamental', status: "inativo", categoria: "processo" },
+    { id: 7, imagem: 'processoB.png', nome: 'Processo G', numero: '7', descricao: 'Descrição do Processo G', data: '2023-10-05', tipo: 'departamental', status: "ativo", categoria: "processo" },
     { id: 8, imagem: 'processoD.jpg', nome: 'Processo H', numero: '8', descricao: 'Descrição do Processo H', data: '2023-10-10', tipo: 'interdepartamental', status: "ativo", categoria: "subprocesso" }
 ];
 
