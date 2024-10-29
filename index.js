@@ -189,14 +189,14 @@ app.post('/processos', upload.fields([{ name: "diagrama" }, { name: "documento" 
     res.status(201).json({ message: 'Processo criado com sucesso!', processo: novoProcesso });
 });
 
+// Servir imagens da pasta "processos"
+app.use('/processos', express.static(path.join(__dirname, 'processos')));
+
 app.get('/processos', (req, res) => { 
     // Filtra os processos com status "ativo"
     const processosAtivos = processos.filter(processo => processo.status === "ativo");
     res.status(200).json(processosAtivos);
 });
-
-// Servir imagens da pasta "processos"
-app.use('/processos', express.static(path.join(__dirname, 'processos')));
 
 // Rota para buscar processos por nome
 app.get('/processos/:nome', async (req, res) => {
