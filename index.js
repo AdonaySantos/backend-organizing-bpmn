@@ -40,6 +40,9 @@ const processosMain = [
     },
     {
         processo: processos[6], subprocessos: [] 
+    },
+    {
+        processo: processos[5], subprocessos: []
     }
 ];
 
@@ -109,6 +112,10 @@ function validateProcessFields(req, res) {
     if (!nome || nome.length < 3) {
         return 'O nome deve ter pelo menos 3 caracteres.';
     }
+    const nomeExistente = processos.some(p => p.nome === nome);
+    if (nomeExistente) {
+        return 'Esse nome já existe. Por favor, use outro nome.';
+    }
     if (!numero) {
         return 'O número do processo é obrigatório.';
     }
@@ -116,12 +123,12 @@ function validateProcessFields(req, res) {
         return 'A descrição deve ter pelo menos 5 caracteres.';
     }
     if (categoria === 'subprocesso' && !processoMain) {
-        return 'O processo pai é obrigatório para subprocessos.';
+        return 'O processo main é obrigatório para subprocessos.';
     }
     if (categoria === 'subprocesso' && processoMain) {
         const processoExistente = processos.find(p => p.nome === processoMain);
         if (!processoExistente) {
-            return 'O processo pai não existe.';
+            return 'O processo main não existe.';
         }
     }
     return null;
@@ -150,12 +157,12 @@ app.post('/processos', upload.fields([{ name: "diagrama" }, { name: "documento" 
     };
 
     // Adiciona o novo processo à lista de processos
-    const index = processos.findIndex(proc => proc.nome > nome);
-    if (index === -1) {
-        processos.push(novoProcesso); // adiciona ao final se não encontrar nenhum maior
-    } else {
-        processos.splice(index, 0, novoProcesso); // insere no índice correto
-    }
+    const index = processos.findIndex(proc => proc.nome.localeCompare(novoProcesso.nome) > 0);
+if (index === -1) {
+    processos.push(novoProcesso); // adiciona ao final se não encontrar nenhum maior
+} else {
+    processos.splice(index, 0, novoProcesso); // insere no índice correto
+}
 
     // Associa o processo aos departamentos, se necessário
     if (departamentos) {
@@ -167,7 +174,6 @@ app.post('/processos', upload.fields([{ name: "diagrama" }, { name: "documento" 
             departamento.processos.push(novoProcesso);
         }
     }
-
     // Lógica para Cadeias de Processos
     if (cadeia) {
         const cadeiaEncontrada = cadeiasDeProcessos.find(c => c.nome === cadeia);
@@ -199,7 +205,8 @@ app.use('/processos', express.static(path.join(__dirname, 'processos')));
 
 app.get('/processos', (req, res) => { 
     // Filtra os processos com status "ativo"
-    const processosAtivos = processos.filter(processo => processo.status === "ativo");
+    const processosAtivos = processos.filter(processo => processo.status === "ativo" && processo.categoria === "processo");
+    
     res.status(200).json(processosAtivos);
 });
 
