@@ -150,7 +150,12 @@ app.post('/processos', upload.fields([{ name: "diagrama" }, { name: "documento" 
     };
 
     // Adiciona o novo processo à lista de processos
-    processos.push(novoProcesso);
+    const index = processos.findIndex(proc => proc.nome > nome);
+    if (index === -1) {
+        processos.push(novoProcesso); // adiciona ao final se não encontrar nenhum maior
+    } else {
+        processos.splice(index, 0, novoProcesso); // insere no índice correto
+    }
 
     // Associa o processo aos departamentos, se necessário
     if (departamentos) {
@@ -370,7 +375,7 @@ app.put('/desativar', async (req, res) => {
 
 app.put('/desativar-processo', async(req, res) => {
     const { name } = req.body;
-    const processo = processos.find(processo => processo.name == name);
+    const processo = processos.find(processo => processo.nome === name);
 
     try {
         if (!processo) {
