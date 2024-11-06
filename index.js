@@ -5,7 +5,9 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
 const multer = require("multer");
+const dataFilePath = './dataAcess.json'
 
 const app = express();
 const PORT = 5000;
@@ -68,6 +70,15 @@ const processosPorDepartamento = [
         processos[7]  // Processo H
     ] }
 ];
+
+let { userAcess, adminAcess } = (() => {
+    try {
+        const data = fs.readFileSync(dataFilePath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        return { userAcess: 0, adminAcess: 0 };
+    }
+})();
 
 // Middleware
 app.use(cors());
@@ -392,7 +403,23 @@ app.put('/desativar-processo', async(req, res) => {
         processo.status = "inativo";
         res.send("Processo desativado com sucesso!")
     } catch (error) {
-        res.status(400).send('Erro ao editar o usuário: ' + error.message);
+        res.status(400).send('Erro ao editar o processo: ' + error.message);
+    }
+});
+
+app.put('/reativar-processo', async(req, res) => {
+    const { name } = req.body;
+    const processo = processos.find(processo => processo.nome === name);
+
+    try {
+        if (!processo) {
+            return res.status(400).send('Processo não encontrado.');
+        }
+        
+        processo.status = "ativo";
+        res.send("Processo ativado com sucesso!")
+    } catch (error) {
+        res.status(400).send('Erro ao editar o processo: ' + error.message);
     }
 });
 
@@ -449,6 +476,10 @@ app.post('/register', async (req, res) => {
     }
 });
 
+const saveAccessData = () => {
+    fs.writeFileSync(dataFilePath, JSON.stringify({ userAcess, adminAcess }), 'utf8');
+};
+
 // Rota para login e geração de token JWT
 app.post('/login', async (req, res) => {
     const { name, password } = req.body;
@@ -469,6 +500,15 @@ app.post('/login', async (req, res) => {
                 SECRET_KEY,
                 { expiresIn: '1h' }
             );
+            
+            if (user.permission === 'user'){
+                userAcess += 1;
+            } else {
+                adminAcess += 1;
+            }
+
+            saveAccessData();
+
             res.status(200).json({ message: 'Login bem-sucedido', token });
         } else {
             res.status(400).json({ message: 'Credenciais inválidas' });
