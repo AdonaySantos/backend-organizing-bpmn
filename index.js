@@ -211,6 +211,73 @@ if (index === -1) {
     res.status(201).json({ message: 'Processo criado com sucesso!', processo: novoProcesso });
 });
 
+app.put("/editar-processos", (req, res) => {
+    const { currentProcessName, newProcessName, newProcessNumber, newChainName, newProcessDescription, selectedDepartments, newCategoria, newProcessMain } = req.body;
+
+    const processToEdit = processos.find(processo => processo.nome === currentProcessName);
+    if (!processToEdit) {
+        return res.status(404).json({ message: "Processo não encontrado." });
+    }
+
+    // Update the process properties conditionally
+    processToEdit.nome = newProcessName || processToEdit.nome;
+    processToEdit.numero = newProcessNumber || processToEdit.numero;
+    processToEdit.descricao = newProcessDescription || processToEdit.descricao;
+    processToEdit.tipo = selectedDepartments.length > 1 ? 'interdepartamental' : 'departamental';
+    processToEdit.categoria = newCategoria || processToEdit.categoria;
+
+    // Update department associations
+    if (selectedDepartments) {
+        processosPorDepartamento.forEach(dep => {
+            dep.processos = dep.processos.filter(p => p.id !== processToEdit.id);
+            if (selectedDepartments.includes(dep.nome)) {
+                dep.processos.push(processToEdit);
+            }
+        });
+    }
+
+    // Update the process chain
+    if (newChainName) {
+        // Find the current chain and remove the process from it
+        cadeiasDeProcessos.forEach(cadeia => {
+            cadeia.processos = cadeia.processos.filter(id => id !== processToEdit.id);
+        });
+
+        // Find or create the new chain and add the process to it
+        let cadeiaEncontrada = cadeiasDeProcessos.find(c => c.nome === newChainName);
+        if (!cadeiaEncontrada) {
+            cadeiaEncontrada = { id: cadeiasDeProcessos.length + 1, nome: newChainName, processos: [] };
+            cadeiasDeProcessos.push(cadeiaEncontrada);
+        }
+        cadeiaEncontrada.processos.push(processToEdit.id);
+    }
+
+    // Associate as subprocess if category is 'subprocesso' and newProcessMain is specified
+    if (newCategoria === 'subprocesso' && newProcessMain) {
+        // Find the main process
+        const mainProcess = processos.find(pm => pm.nome === newProcessMain);
+        
+        if (!mainProcess) {
+            return res.status(404).json({ message: 'O processo principal não existe.' });
+        }
+
+        // Remove from any existing main process associations
+        processos.forEach(pm => {
+            if (pm.subprocessos) {
+                pm.subprocessos = pm.subprocessos.filter(sub => sub.id !== processToEdit.id);
+            }
+        });
+
+        // Add as a subprocess to the specified main process
+        if (!mainProcess.subprocessos) {
+            mainProcess.subprocessos = [];
+        }
+        mainProcess.subprocessos.push(processToEdit);
+    }
+
+    res.status(200).json({ message: "Processo atualizado com sucesso!", processo: processToEdit });
+});
+
 // Servir imagens da pasta "processos"
 app.use('/processos', express.static(path.join(__dirname, 'processos')));
 
@@ -236,15 +303,18 @@ app.get('/processos/:nome', async (req, res) => {
     res.json(resultados)
 });
 
+// Servir imagens da pasta "processos"
+app.use('/subprocessos', express.static(path.join(__dirname, 'processos')));
+
 app.get("/subprocessos", (req, res) => {
-    res.json(processosMain.processo.nome && processosMain.subprocessos);
+    res.json(processosMain.processo.nome && processosMain.subprocessos); // retorna o nome do processo a qual os subprocessos pertencem e os subprocessos em si.
 });
 
 app.get('/processos-inativos', (req, res) => {
     const processosInativos = processos.filter(processo => processo.status === 'inativo');
     
     if (processosInativos.length === 0) {
-        return res.status(404).json({ message: 'Nenhum processo inativo encontrado.' });
+        return res.status(200).json({ message: 'Nenhum processo inativo encontrado.' });
     }
 
     res.status(200).json(processosInativos);
