@@ -80,6 +80,8 @@ let { userAcess, adminAcess } = (() => {
     }
 })();
 
+let acessUsers = []
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
@@ -561,8 +563,44 @@ app.post('/register', async (req, res) => {
 });
 
 const saveAccessData = () => {
-    fs.writeFileSync(dataFilePath, JSON.stringify({ userAcess, adminAcess }), 'utf8');
+    const data = { userAcess, adminAcess, acessUsers };
+    fs.writeFileSync(dataFilePath, JSON.stringify(data), 'utf8');
 };
+
+// Função para carregar os dados persistidos
+const loadAccessData = () => {
+    if (fs.existsSync(dataFilePath)) {
+        const data = JSON.parse(fs.readFileSync(dataFilePath, 'utf8'));
+        userAcess = data.userAcess || 0;
+        adminAcess = data.adminAcess || 0;
+        acessUsers = data.acessUsers || [];
+    } else {
+        userAcess = 0;
+        adminAcess = 0;
+        acessUsers = [];
+    }
+};
+
+// Carregar os dados ao iniciar o servidor
+loadAccessData();
+
+app.get("/acessos", (req, res) => {
+    res.status(200).json({
+        acessUsers,
+        userAcess,
+        adminAcess
+    });
+});
+
+app.post("/acessos/zerar", (req, res) => {
+    userAcess = 0;
+    adminAcess = 0;
+    acessUsers = [];
+
+    saveAccessData(); // Salva os dados zerados no arquivo
+
+    res.status(200).json({ message: "Valores de acesso zerados com sucesso" });
+});
 
 // Rota para login e geração de token JWT
 app.post('/login', async (req, res) => {
@@ -591,6 +629,9 @@ app.post('/login', async (req, res) => {
                 adminAcess += 1;
             }
 
+            const currentDate = new Date().toLocaleDateString('pt-BR');
+            acessUsers.push({ permission: user.permission, name: user.name, date: currentDate });
+            
             saveAccessData();
 
             res.status(200).json({ message: 'Login bem-sucedido', token });
