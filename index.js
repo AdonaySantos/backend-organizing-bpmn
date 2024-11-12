@@ -240,9 +240,11 @@ app.put("/editar-processos", (req, res) => {
 
     // Atualiza associações de departamentos
     if (selectedDepartments) {
+        const listaSelectedDepartments = Array.isArray(selectedDepartments) ? selectedDepartments : [selectedDepartments];
         processosPorDepartamento.forEach(dep => {
             dep.processos = dep.processos.filter(p => p.id !== processToEdit.id);
-            if (selectedDepartments.includes(dep.nome)) {
+            
+            if (listaSelectedDepartments.includes(dep.nome)) {
                 dep.processos.push(processToEdit);
             }
         });
@@ -599,8 +601,6 @@ app.post('/login', async (req, res) => {
         res.status(500).json({ message: 'Erro no servidor' });
     }
 });
-
-
 
 // Rota protegida (exemplo: recuperação de senha)
 app.post('/forgot-password', (req, res) => {
