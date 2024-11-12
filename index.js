@@ -308,11 +308,8 @@ app.get('/processos/:nome', async (req, res) => {
 app.use('/subprocessos', express.static(path.join(__dirname, 'processos')));
 
 app.get("/subprocessos", (req, res) => {
-    const response = processosMain.map((item) => ({
-        processoNome: item.processo.nome,
-        subprocessos: item.subprocessos
-    }));
-    res.status(200).json(response); // Returns an array with each process's name and its subprocesses.
+    const subprocessos = processosMain.flatMap((item) => item.subprocessos);
+    res.status(200).json(subprocessos); // Returns an array of all subprocesses
 });
 
 app.get('/processos-inativos', (req, res) => {
