@@ -15,14 +15,14 @@ const SECRET_KEY = process.env.SECRET_KEY || crypto.randomBytes(64).toString('he
 
 // Usuários e processos em memória (para testes)
 const processos = [
-    { id: 1, imagem: 'processoA.png', nome: 'Processo A', numero: '1', descricao: 'Descrição do Processo A', data: '2023-09-01', tipo: 'departamental', status: "ativo", categoria: "subprocesso" },
-    { id: 2, imagem: 'processoB.png', nome: 'Processo B', numero: '2', descricao: 'Descrição do Processo B', data: '2023-09-10', tipo: 'interdepartamental', status: "ativo", categoria: "processo" },
-    { id: 3, imagem: 'processoC.jpg', nome: 'Processo C', numero: '3', descricao: 'Descrição do Processo C', data: '2023-09-20', tipo: 'departamental', status: "ativo", categoria: "subprocesso" },
-    { id: 4, imagem: 'processoD.jpg', nome: 'Processo D', numero: '4', descricao: 'Descrição do Processo D', data: '2023-09-25', tipo: 'interdepartamental', status: "ativo", categoria: "processo" },
-    { id: 5, imagem: 'processoA.png', nome: 'Processo E', numero: '5', descricao: 'Descrição do Processo E', data: '2023-09-30', tipo: 'departamental', status: "inativo", categoria: "subprocesso" },
-    { id: 6, imagem: 'processoC.jpg', nome: 'Processo F', numero: '6', descricao: 'Descrição do Processo F', data: '2023-10-01', tipo: 'interdepartamental', status: "inativo", categoria: "processo" },
-    { id: 7, imagem: 'processoB.png', nome: 'Processo G', numero: '7', descricao: 'Descrição do Processo G', data: '2023-10-05', tipo: 'departamental', status: "ativo", categoria: "processo" },
-    { id: 8, imagem: 'processoD.jpg', nome: 'Processo H', numero: '8', descricao: 'Descrição do Processo H', data: '2023-10-10', tipo: 'interdepartamental', status: "ativo", categoria: "subprocesso" }
+    { id: 1, imagem: 'processoA.png', documento: "documentoA.pdf", nome: 'Processo A', numero: '1', descricao: 'Descrição do Processo A', data: '2023-09-01', tipo: 'departamental', status: "ativo", categoria: "subprocesso" },
+    { id: 2, imagem: 'processoB.png', documento: "documentoA.pdf", nome: 'Processo B', numero: '2', descricao: 'Descrição do Processo B', data: '2023-09-10', tipo: 'interdepartamental', status: "ativo", categoria: "processo" },
+    { id: 3, imagem: 'processoC.jpg', documento: "", nome: 'Processo C', numero: '3', descricao: 'Descrição do Processo C', data: '2023-09-20', tipo: 'departamental', status: "ativo", categoria: "subprocesso" },
+    { id: 4, imagem: 'processoD.jpg', documento: "", nome: 'Processo D', numero: '4', descricao: 'Descrição do Processo D', data: '2023-09-25', tipo: 'interdepartamental', status: "ativo", categoria: "processo" },
+    { id: 5, imagem: 'processoA.png', documento: "", nome: 'Processo E', numero: '5', descricao: 'Descrição do Processo E', data: '2023-09-30', tipo: 'departamental', status: "inativo", categoria: "subprocesso" },
+    { id: 6, imagem: 'processoC.jpg', documento: "", nome: 'Processo F', numero: '6', descricao: 'Descrição do Processo F', data: '2023-10-01', tipo: 'interdepartamental', status: "inativo", categoria: "processo" },
+    { id: 7, imagem: 'processoB.png', documento: "", nome: 'Processo G', numero: '7', descricao: 'Descrição do Processo G', data: '2023-10-05', tipo: 'departamental', status: "ativo", categoria: "processo" },
+    { id: 8, imagem: 'processoD.jpg', documento: "", nome: 'Processo H', numero: '8', descricao: 'Descrição do Processo H', data: '2023-10-10', tipo: 'interdepartamental', status: "ativo", categoria: "subprocesso" }
 ];
 
 const cadeiasDeProcessos = [
@@ -281,6 +281,8 @@ app.put("/editar-processos", (req, res) => {
 
 // Servir imagens da pasta "processos"
 app.use('/processos', express.static(path.join(__dirname, 'processos')));
+
+app.use('/documentos', express.static(path.join(__dirname, 'documentos')));
 
 app.get('/processos', (req, res) => { 
     // Filtra os processos com status "ativo"
