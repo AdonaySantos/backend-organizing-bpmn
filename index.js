@@ -153,11 +153,13 @@ app.post('/processos', upload.fields([{ name: "diagrama" }, { name: "documento" 
     const { nome, numero, descricao, categoria, processoMain, cadeia, departamentos } = req.body;
     const tipoProcesso = departamentos.length > 1 ? 'interdepartamental' : 'departamental';
     const nomeImagem = req.files['diagrama'][0].filename
+    const nomeDocumento = req.files['documento'][0].filename
 
     // Cria o novo processo
     const novoProcesso = {
         id: processos.length + 1,
         imagem: nomeImagem, // quero que a imagem seja o nome do diagrama do upload
+        documento: nomeDocumento,
         nome,
         numero,
         descricao,
