@@ -151,9 +151,13 @@ app.post('/processos', upload.fields([{ name: "diagrama" }, { name: "documento" 
     if(error) return res.status(400).json({ message: error })
 
     const { nome, numero, descricao, categoria, processoMain, cadeia, departamentos } = req.body;
+    console.log(departamentos)
     const tipoProcesso = departamentos.length > 1 ? 'interdepartamental' : 'departamental';
     const nomeImagem = req.files['diagrama'][0].filename
-    const nomeDocumento = req.files['documento'][0].filename
+    let nomeDocumento
+    if(req.files['documento']){
+        nomeDocumento = req.files['documento'][0].filename
+    }
 
     // Cria o novo processo
     const novoProcesso = {
@@ -179,8 +183,10 @@ if (index === -1) {
 
     // Associa o processo aos departamentos, se necessário
     if (departamentos) {
-        for (const dep of departamentos) {
+        const listaDepartamentos = Array.isArray(departamentos) ? departamentos : [departamentos]; // Converte para array se for string
+        for (const dep of listaDepartamentos) {
             const departamento = processosPorDepartamento.find(d => d.nome === dep);
+            console.log(departamento);
             if (!departamento) {
                 return res.status(400).json({ message: 'O departamento não existe.' });
             }
