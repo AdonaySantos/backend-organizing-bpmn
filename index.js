@@ -214,19 +214,23 @@ if (index === -1) {
 app.put("/editar-processos", (req, res) => {
     const { currentProcessName, newProcessName, newProcessNumber, newChainName, newProcessDescription, selectedDepartments, newCategoria, newProcessMain } = req.body;
 
+    // Procura o processo que será editado
     const processToEdit = processos.find(processo => processo.nome === currentProcessName);
     if (!processToEdit) {
+        console.log("Processo não encontrado");
         return res.status(404).json({ message: "Processo não encontrado." });
     }
 
-    // Update the process properties conditionally
+    // Atualiza as propriedades do processo
     processToEdit.nome = newProcessName || processToEdit.nome;
     processToEdit.numero = newProcessNumber || processToEdit.numero;
     processToEdit.descricao = newProcessDescription || processToEdit.descricao;
-    processToEdit.tipo = selectedDepartments.length > 1 ? 'interdepartamental' : 'departamental';
+    processToEdit.tipo = selectedDepartments && selectedDepartments.length > 1 ? 'interdepartamental' : 'departamental';
     processToEdit.categoria = newCategoria || processToEdit.categoria;
 
-    // Update department associations
+    console.log("Processo após atualização de campos básicos:", processToEdit);
+
+    // Atualiza associações de departamentos
     if (selectedDepartments) {
         processosPorDepartamento.forEach(dep => {
             dep.processos = dep.processos.filter(p => p.id !== processToEdit.id);
@@ -236,14 +240,12 @@ app.put("/editar-processos", (req, res) => {
         });
     }
 
-    // Update the process chain
+    // Atualiza a cadeia de processos
     if (newChainName) {
-        // Find the current chain and remove the process from it
         cadeiasDeProcessos.forEach(cadeia => {
             cadeia.processos = cadeia.processos.filter(id => id !== processToEdit.id);
         });
 
-        // Find or create the new chain and add the process to it
         let cadeiaEncontrada = cadeiasDeProcessos.find(c => c.nome === newChainName);
         if (!cadeiaEncontrada) {
             cadeiaEncontrada = { id: cadeiasDeProcessos.length + 1, nome: newChainName, processos: [] };
@@ -252,29 +254,28 @@ app.put("/editar-processos", (req, res) => {
         cadeiaEncontrada.processos.push(processToEdit.id);
     }
 
-    // Associate as subprocess if category is 'subprocesso' and newProcessMain is specified
+    // Associa como subprocesso, se necessário
     if (newCategoria === 'subprocesso' && newProcessMain) {
-        // Find the main process
         const mainProcess = processos.find(pm => pm.nome === newProcessMain);
         
         if (!mainProcess) {
+            console.log("Processo principal não existe");
             return res.status(404).json({ message: 'O processo principal não existe.' });
         }
 
-        // Remove from any existing main process associations
         processos.forEach(pm => {
             if (pm.subprocessos) {
                 pm.subprocessos = pm.subprocessos.filter(sub => sub.id !== processToEdit.id);
             }
         });
 
-        // Add as a subprocess to the specified main process
         if (!mainProcess.subprocessos) {
             mainProcess.subprocessos = [];
         }
         mainProcess.subprocessos.push(processToEdit);
     }
 
+    console.log("Processo atualizado:", processToEdit);
     res.status(200).json({ message: "Processo atualizado com sucesso!", processo: processToEdit });
 });
 
@@ -307,7 +308,11 @@ app.get('/processos/:nome', async (req, res) => {
 app.use('/subprocessos', express.static(path.join(__dirname, 'processos')));
 
 app.get("/subprocessos", (req, res) => {
-    res.json(processosMain.processo.nome && processosMain.subprocessos); // retorna o nome do processo a qual os subprocessos pertencem e os subprocessos em si.
+    const response = processosMain.map((item) => ({
+        processoNome: item.processo.nome,
+        subprocessos: item.subprocessos
+    }));
+    res.status(200).json(response); // Returns an array with each process's name and its subprocesses.
 });
 
 app.get('/processos-inativos', (req, res) => {
