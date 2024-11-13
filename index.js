@@ -13,6 +13,8 @@ const app = express();
 const PORT = 5000;
 const SECRET_KEY = process.env.SECRET_KEY || crypto.randomBytes(64).toString('hex');
 
+// APLICAÇÃO FINALIZADA
+
 // Usuários e processos em memória (para testes)
 const processos = [
     { id: 1, imagem: 'processoA.png', documento: "documentoA.pdf", nome: 'Processo A', numero: '1', descricao: 'Descrição do Processo A', data: '2023-09-01', tipo: 'departamental', status: "ativo", categoria: "subprocesso" },
