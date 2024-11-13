@@ -631,8 +631,12 @@ app.post('/login', async (req, res) => {
                 adminAcess += 1;
             }
 
-            const currentDate = new Date().toLocaleDateString('pt-BR');
-            acessUsers.unshift({ permission: user.permission, name: user.name, date: currentDate });
+            const currentDate = new Date();
+            currentDate.setHours(currentDate.getHours() - 3); // Subtract 3 hours for Brasília time zone (UTC-3)
+
+            const formattedDate = currentDate.toLocaleDateString('pt-BR'); // Now this will be in the correct local date
+
+            acessUsers.unshift({ permission: user.permission, name: user.name, date: formattedDate });
             
             saveAccessData();
 
