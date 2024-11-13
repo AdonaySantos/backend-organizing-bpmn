@@ -632,7 +632,7 @@ app.post('/login', async (req, res) => {
             }
 
             const currentDate = new Date().toLocaleDateString('pt-BR');
-            acessUsers.push({ permission: user.permission, name: user.name, date: currentDate });
+            acessUsers.unshift({ permission: user.permission, name: user.name, date: currentDate });
             
             saveAccessData();
 
